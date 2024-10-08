@@ -40,11 +40,11 @@ function isOneCharacterString(str: string): boolean {
 function uwuify(message: string): string {
     let text = message;
 
-    // Apply regex replacements like in the original Python function
+    // Apply regex replacements
     text = text.replace(/([aeiou])t/gi, (match) => match[0] + 'w' + match[1]);
     text = text.replace(/th/gi, (match) => match.toLowerCase() === "th" ? "d" : "D");
     
-    // Apply character-specific replacements
+    // Replace string using your existing `replaceString` method, but only once
     text = text.replace(/ove/gi, 'uv')
                .replace(/[rl]/g, 'w')
                .replace(/[RL]/g, 'W')
