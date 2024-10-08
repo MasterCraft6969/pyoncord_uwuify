@@ -21,20 +21,6 @@ function selectRandomElement(arr: string[]): string {
     return arr[randomIndex];
 }
 
-function replacePattern(match: RegExpExecArray): string {
-    const char = match[1];
-    if (char && 'aeiouAEIOU'.includes(char) && match[2]) {
-        return `${char}w${match[2]}`;
-    } else if (match[0].toLowerCase() === 'th') {
-        return match[0].toLowerCase() === 'th' ? 'd' : 'D';
-    }
-    return match[0];
-}
-
-function appendRandomString(match: RegExpExecArray): string {
-    return match[0] + " " + selectRandomElement(endings);
-}
-
 function replaceString(inputString: string): string | false {
     let replaced = false;
     for (const [oldStr, newStr] of replacements) {
@@ -47,30 +33,39 @@ function replaceString(inputString: string): string | false {
     return replaced ? inputString : false;
 }
 
-function uwuify(text: string): string {
-    text = text.replace(/([aeiou])t/gi, (match) => replacePattern(/([aeiou])t/gi.exec(match)!));
-    text = text.replace(/th/gi, (match) => replacePattern(/(th)/gi.exec(match)!));
+function isOneCharacterString(str: string): boolean {
+    return str.split('').every((char: string) => char === str[0]);
+}
+
+function uwuify(message: string): string {
+    let text = message;
+
+    // Apply regex replacements like in the original Python function
+    text = text.replace(/([aeiou])t/gi, (match) => match[0] + 'w' + match[1]);
+    text = text.replace(/th/gi, (match) => match.toLowerCase() === "th" ? "d" : "D");
     
+    // Apply character-specific replacements
     text = text.replace(/ove/gi, 'uv')
                .replace(/[rl]/g, 'w')
                .replace(/[RL]/g, 'W')
                .replace(/[U]/g, 'U-U')
                .replace(/[u]/g, 'u-u')
-               .replace(/((?<!\.)\.(?!\.)|[!?](?=\s|$|[^\s!?]))/g, appendRandomString);
+               .replace(/n([aeiou])/gi, 'ny$1');
 
-    text = text.replace(/n([aeiou])/gi, 'ny$1');
-    if (text && text[0].match(/[a-zA-Z]/)) {
+    // Add random endings if sentence ends in punctuation
+    text = text.replace(/((?<!\.)\.(?!\.)|[!?](?=\s|$|[^\s!?]))/g, (match) => match + " " + selectRandomElement(endings));
+
+    // Add "-" at the beginning if the first character is a letter
+    if (text[0].match(/[a-zA-Z]/)) {
         text = text[0] + '-' + text;
     }
-    if (text && text[text.length - 1].match(/[a-zA-Z]/)) {
+
+    // Add "~~" and a random ending if the last character is a letter
+    if (text[text.length - 1].match(/[a-zA-Z]/)) {
         text += '~~ ' + selectRandomElement(endings);
     }
-    
-    return text;
-}
 
-function isOneCharacterString(str: string): boolean {
-    return str.split('').every((char: string) => char === str[0]);
+    return text;
 }
 
 function uwuifyMessage(message: string): string {
