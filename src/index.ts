@@ -5,95 +5,92 @@ const MessageActions = findByProps("sendMessage", "receiveMessage");
 const Locale = findByProps("Messages");
 
 const endings = [
-    "rawr x3", "OwO", "UwU", "o.O", "-.-", ">w<", "(⑅˘꒳˘)", "(ꈍᴗꈍ)", "(˘ω˘)", 
-    "(U ᵕ U❁)", "σωσ", "òωó", "(///ˬ///✿)", "(U ﹏ U)", "( ͡o ω ͡o )", "ʘwʘ", ":3", 
-    ":3", ":3", "XD", "nyaa~~", "mya", ">_<", "😳", "🥺", "😳😳😳", "rawr", "^^", 
-    "^^;;", "(ˆ ﻌ ˆ)♡", "^•ﻌ•^", "/(^•ω•^)", "(✿oωo)"
+    "rawr x3",
+    "OwO",
+    "UwU",
+    "o.O",
+    "-.-",
+    ">w<",
+    "(⑅˘꒳˘)",
+    "(ꈍᴗꈍ)",
+    "(˘ω˘)",
+    "(U ᵕ U❁)",
+    "σωσ",
+    "òωó",
+    "(///ˬ///✿)",
+    "(U ﹏ U)",
+    "( ͡o ω ͡o )",
+    "ʘwʘ",
+    ":3",
+    ":3", // important enough to have twice
+    ":3", // important enough to have thrice
+    "XD",
+    "nyaa~~",
+    "mya",
+    ">_<",
+    "😳",
+    "🥺",
+    "😳😳😳",
+    "rawr",
+    "^^",
+    "^^;;",
+    "(ˆ ﻌ ˆ)♡",
+    "^•ﻌ•^",
+    "/(^•ω•^)",
+    "(✿oωo)"
 ];
 
 const replacements = [
-    ["small", "smol"], ["cute", "kawaii"], ["fluff", "floof"], ["love", "luv"], 
-    ["stupid", "baka"], ["what", "nani"], ["meow", "nya"], ["hello", "hewwo"]
+    ["small", "smol"],
+    ["cute", "kawaii"],
+    ["fluff", "floof"],
+    ["love", "luv"],
+    ["stupid", "baka"],
+    ["what", "nani"],
+    ["meow", "nya"],
+    ["hello", "hewwo"],
 ];
 
-function selectRandomElement(arr: string[]): string {
-    const randomIndex = Math.floor(Math.random() * arr.length);
-    return arr[randomIndex];
-}
 
-function replaceString(inputString: string): string | false {
-    let replaced = false;
-    for (const [oldStr, newStr] of replacements) {
-        const regex = new RegExp(`\\b${oldStr}\\b`, "gi");
-        if (regex.test(inputString)) {
-            inputString = inputString.replace(regex, newStr);
-            replaced = true;
-        }
-    }
-    return replaced ? inputString : false;
-}
-
-function isOneCharacterString(str: string): boolean {
-    return str.split('').every((char: string) => char === str[0]);
-}
-
+function selectRandomElement(arr) {
 function uwuify(message: string): string {
-    let text = message;
-
-    // Apply regex replacements
-    text = text.replace(/([aeiou])t/gi, (match) => match[0] + 'w' + match[1]);
-    text = text.replace(/th/gi, (match) => match.toLowerCase() === "th" ? "d" : "D");
-    
-    // Replace string using your existing `replaceString` method, but only once
-    text = text.replace(/ove/gi, 'uv')
-               .replace(/[rl]/g, 'w')
-               .replace(/[RL]/g, 'W')
-               .replace(/[U]/g, 'U-U')
-               .replace(/[u]/g, 'u-u')
-               .replace(/n([aeiou])/gi, 'ny$1');
-
-    // Add random endings if sentence ends in punctuation
-    text = text.replace(/((?<!\.)\.(?!\.)|[!?](?=\s|$|[^\s!?]))/g, (match) => match + " " + selectRandomElement(endings));
-
-    // Add "-" at the beginning if the first character is a letter
-    if (text[0].match(/[a-zA-Z]/)) {
-        text = text[0] + '-' + text;
-    }
-
-    // Add "~~" and a random ending if the last character is a letter
-    if (text[text.length - 1].match(/[a-zA-Z]/)) {
-        text += '~~ ' + selectRandomElement(endings);
-    }
-
-    return text;
-}
-
-function uwuifyMessage(message: string): string {
     const rule = /\S+|\s+/g;
-    const words = message.match(rule) || [];
+    const words: string[] | null = message.match(rule);
     let answer = "";
 
+    if (words === null) return "";
+
     for (let i = 0; i < words.length; i++) {
-        if (isOneCharacterString(words[i]) || words[i].startsWith("https://")) {
+        if (words[i].split('').every((char: string) => char === words[i][0]) || words[i].startsWith("https://")) {
             answer += words[i];
             continue;
         }
 
-        const replaced = replaceString(words[i]);
-        if (replaced === false) {
+        let replaced = false;
+        for (const replacement of replacements) {
+            const regex = new RegExp(`\\b${replacement[0]}\\b`, "gi");
+            if (regex.test(words[i])) {
+                words[i] = words[i].replace(regex, replacement[1]);
+                replaced = true;
+            }
+        }
+
+        if (!replaced) {
             answer += words[i]
                 .replace(/n(?=[aeo])/g, "ny")
                 .replace(/l|r/g, "w");
         } else {
-            answer += replaced;
+            answer += words[i];
         }
     }
 
-    answer += " " + selectRandomElement(endings);
+    const randomIndex = Math.floor(Math.random() * endings.length);
+    answer += " " + endings[randomIndex];
+    
     return answer;
 }
 
-function uwuifyArray(arr: any[]): any[] {
+function uwuifyArray(arr) {
     const newArr = [...arr];
 
     newArr.forEach((item, index) => {
@@ -105,9 +102,11 @@ function uwuifyArray(arr: any[]): any[] {
     });
 
     return newArr;
-}
+    }
 
-let patches: any[] = [];
+
+
+let patches = [];
 
 export default {
     onLoad: () => {
@@ -122,19 +121,23 @@ export default {
                 description: Locale.Messages.COMMAND_SHRUG_MESSAGE_DESCRIPTION,
                 displayDescription: Locale.Messages.COMMAND_SHRUG_MESSAGE_DESCRIPTION,
                 required: true,
+                // @ts-ignore
                 type: 3
             }],
+            // @ts-ignore
             applicationId: -1,
             inputType: 1,
             type: 1,
+        
             execute: (args, ctx) => {
+               
                 MessageActions.sendMessage(ctx.channel.id, {
-                    content: uwuifyMessage(args[0].value)
-                });
+                    content: uwuify(args[0].value)
+                })
             }
         }));
     },
     onUnload: () => {
-        for (const unpatch of patches) unpatch();
+        for (const unpatch of patches) unpatch()
     }
-};
+        }
